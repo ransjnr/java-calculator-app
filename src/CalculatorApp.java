@@ -5,7 +5,7 @@ public class CalculatorApp {
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
 
-    System.out.println("Welcome to Advanced Java Calculator!");
+    System.out.println("Welcome to Java Calculator!");
 
     while (true) {
       // Display menu
