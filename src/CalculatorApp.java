@@ -1,104 +1,129 @@
-import java.util.Scanner;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
-public class CalculatorApp {
+class CalculatorApp extends JFrame implements ActionListener {
 
-  public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
+    JTextField displayField;
+    JButton[] buttons = new JButton[14];
+    String[] buttonLabels = {"7", "8", "9", "+",
+                             "4", "5", "6", "-",
+                             "1", "2", "3", "*",
+                             "0", "."};
+    double firstNumber, secondNumber, result;
+    char operator;
+    StringBuilder currentInput = new StringBuilder();
 
-    System.out.println("Welcome to Java Calculator!");
+    public CalculatorApp() {
+        setTitle("Simple Calculator");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-    while (true) {
-      // Display menu
-      printMenu();
+        // Create display field with increased size
+        displayField = new JTextField("", 25);
+        displayField.setEditable(false);
+        displayField.setHorizontalAlignment(SwingConstants.RIGHT);
+        add(displayField, BorderLayout.NORTH);
 
-      // Get user choice
-      System.out.print("Enter your choice (1-5): ");
-      int choice = (int) getNumber(scanner);
+        // Create button panel with reduced grid size
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(4, 7, 5, 5));
 
-      // Perform operation based on choice
-      double result = 0;
-      try {
-        switch (choice) {
-          case 1:
-            result = performOperation(scanner, '+');
-            break;
-          case 2:
-            result = performOperation(scanner, '-');
-            break;
-          case 3:
-            result = performOperation(scanner, '*');
-            break;
-          case 4:
-            result = performOperation(scanner, '/');
-            break;
-          case 5:
-            System.out.println("Exiting calculator...");
-            break;
-          default:
-            System.out.println("Invalid choice. Please try again.");
+        // Create buttons with labels and add listeners
+        for (int i = 0; i < 14; i++) {
+            buttons[i] = new JButton(buttonLabels[i]);
+            buttons[i].addActionListener(this);
+            buttonPanel.add(buttons[i]);
         }
-      } catch (Exception e) {
-        System.out.println("Error: " + e.getMessage());
-      }
 
-      // Display result (if applicable)
-      if (choice != 5) {
-        System.out.println("Result: " + result);
-      }
+        // Add additional buttons (C, =, %)
+        JButton clearButton = new JButton("C");
+        clearButton.addActionListener(this);
+        buttonPanel.add(clearButton);
 
-      // Ask for another calculation
-      System.out.print("Do you want to perform another calculation? (y/n): ");
-      String answer = scanner.next();
-      if (answer.equalsIgnoreCase("n")) {
-        break;
-      }
+        JButton equalsButton = new JButton("=");
+        equalsButton.addActionListener(this);
+        buttonPanel.add(equalsButton);
+
+        add(buttonPanel, BorderLayout.CENTER);
+        pack();
+        setVisible(true);
     }
 
-    scanner.close();
-    System.out.println("Thanks for using Advanced Java Calculator!");
-  }
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        JButton clickedButton = (JButton) e.getSource();
+        String clickedLabel = clickedButton.getText();
 
-  // Function to display menu options
-  public static void printMenu() {
-    System.out.println("\nMenu:");
-    System.out.println("1. Addition");
-    System.out.println("2. Subtraction");
-    System.out.println("3. Multiplication");
-    System.out.println("4. Division");
-    System.out.println("5. Exit");
-  }
-
-  // Function to get a valid number from the user
-  public static double getNumber(Scanner scanner) {
-    while (!scanner.hasNextDouble()) {
-      System.out.println("Invalid input. Please enter a number: ");
-      scanner.next();
-    }
-    return scanner.nextDouble();
-  }
-
-  // Function to perform calculation based on operator
-  public static double performOperation(Scanner scanner, char operator) throws Exception {
-    System.out.print("Enter the first number: ");
-    double firstNumber = getNumber(scanner);
-
-    System.out.print("Enter the second number: ");
-    double secondNumber = getNumber(scanner);
-
-    switch (operator) {
-      case '+':
-        return firstNumber + secondNumber;
-      case '-':
-        return firstNumber - secondNumber;
-      case '*':
-        return firstNumber * secondNumber;
-      case '/':
-        if (secondNumber == 0) {
-          throw new ArithmeticException("Division by zero!");
+        if (Character.isDigit(clickedLabel.charAt(0)) || clickedLabel.equals(".")) {
+            appendNumber(clickedLabel);
+        } else if (clickedLabel.equals("C")) {
+            clearDisplay();
+        } else if (clickedLabel.equals("=")) {
+            performCalculation();
+        } else {
+            setOperator(clickedLabel.charAt(0));
         }
-        return firstNumber / secondNumber;
-      default:
-        throw new IllegalArgumentException("Invalid operator!");
     }
-  }
+
+    void appendNumber(String number) {
+        currentInput.append(number);
+        displayField.setText(currentInput.toString());
+    }
+
+    void clearDisplay() {
+        currentInput.setLength(0);
+        displayField.setText("");
+        firstNumber = 0;
+        secondNumber = 0;
+        operator = ' ';
+    }
+
+    void setOperator(char op) {
+        operator = op;
+        try {
+            firstNumber = Double.parseDouble(currentInput.toString());
+        } catch (NumberFormatException e) {
+            // Handle invalid input (optional)
+            return;
+        }
+        currentInput.setLength(0); // Clear for second number input
+        displayField.setText(displayField.getText() + op); // Display operation on screen
+    }
+
+    void performCalculation() {
+        try {
+            secondNumber = Double.parseDouble(currentInput.toString());
+        } catch (NumberFormatException e) {
+            return;
+        }
+
+        switch (operator) {
+            case '+':
+                result = firstNumber + secondNumber;
+                break;
+            case '-':
+                result = firstNumber - secondNumber;
+                break;
+            case '*':
+                result = firstNumber * secondNumber;
+                break;
+            case '/':
+                if (secondNumber == 0) {
+                    throw new ArithmeticException("Division by zero!");
+                }
+                result = firstNumber / secondNumber;
+                break;
+            default:
+                return;
+        }
+
+        displayField.setText(String.valueOf(result));
+        currentInput.setLength(0); // Clear for next calculation
+        firstNumber = result; // Save result for further calculations (optional)
+    }
+
+    public static void main(String[] args) {
+        new CalculatorApp();
+    }
 }
