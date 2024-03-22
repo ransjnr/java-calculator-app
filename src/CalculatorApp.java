@@ -1,3 +1,5 @@
+//
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -5,38 +7,39 @@ import javax.swing.*;
 class CalculatorApp extends JFrame implements ActionListener {
 
     JTextField displayField;
-    JButton[] buttons = new JButton[14];
-    String[] buttonLabels = {"7", "8", "9", "+",
-                             "4", "5", "6", "-",
-                             "1", "2", "3", "*",
-                             "0", "."};
+    JButton[] buttons = new JButton[16]; // Increased array size to accommodate the division button
+    String[] buttonLabels = {"7", "8", "9", "/", // Added "/" to the array
+                             "4", "5", "6", "*",
+                             "1", "2", "3", "-",
+                             "0", ".", "+", "%"}; // Rearranged the order
     double firstNumber, secondNumber, result;
     char operator;
     StringBuilder currentInput = new StringBuilder();
+    JTextArea historyArea;
 
     public CalculatorApp() {
-        setTitle("Simple Calculator");
+        setTitle("Andelle's Calculator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         // Create display field with increased size
-        displayField = new JTextField("", 25);
+        displayField = new JTextField("", 35);
         displayField.setEditable(false);
         displayField.setHorizontalAlignment(SwingConstants.RIGHT);
         add(displayField, BorderLayout.NORTH);
 
         // Create button panel with reduced grid size
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(4, 7, 5, 5));
+        buttonPanel.setLayout(new GridLayout(4, 4, 5, 5)); // Changed grid layout to 4x4
 
         // Create buttons with labels and add listeners
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 16; i++) { // Loop for 16 buttons
             buttons[i] = new JButton(buttonLabels[i]);
             buttons[i].addActionListener(this);
             buttonPanel.add(buttons[i]);
         }
 
-        // Add additional buttons (C, =, %)
+        // Add additional buttons (C, =)
         JButton clearButton = new JButton("C");
         clearButton.addActionListener(this);
         buttonPanel.add(clearButton);
@@ -46,8 +49,14 @@ class CalculatorApp extends JFrame implements ActionListener {
         buttonPanel.add(equalsButton);
 
         add(buttonPanel, BorderLayout.CENTER);
+
+        historyArea = new JTextArea(10, 25); // 10 rows, 25 columns
+        historyArea.setEditable(false);
+        add(new JScrollPane(historyArea), BorderLayout.EAST);
+
         pack();
         setVisible(true);
+    
     }
 
     @Override
@@ -62,7 +71,16 @@ class CalculatorApp extends JFrame implements ActionListener {
         } else if (clickedLabel.equals("=")) {
             performCalculation();
         } else {
-            setOperator(clickedLabel.charAt(0));
+            switch (clickedLabel) {
+                case "+":
+                case "-":
+                case "*":
+                case "/":
+                    setOperator(clickedLabel.charAt(0));
+                    break;
+                default:
+                    // Handle other buttons like "%" (optional)
+            }
         }
     }
 
@@ -118,8 +136,11 @@ class CalculatorApp extends JFrame implements ActionListener {
                 return;
         }
 
+        String calculation = firstNumber + " " + operator + " " + secondNumber + " = " + result;
+        historyArea.append(calculation + "\n"); // Add calculation to history
+
         displayField.setText(String.valueOf(result));
-        currentInput.setLength(0); // Clear for next calculation
+        currentInput.setLength(0);
         firstNumber = result; // Save result for further calculations (optional)
     }
 
